@@ -73,3 +73,74 @@ ls -l test.sh
 添加权限用`+`，删除权限用`-`
 
 ## 进程
+1. `ps`：查看当前终端中与你有关的进程
+![ps](assets/images/Linux文件操作_image-11.png)
+2. `ps aux`：查看系统中更完整的进程列表，`a`显示其他用户及其他终端中的进程；`u`使用面向用户的详细格式；`x`显示没有关联终端的后台进程。
+![psaux](assets/images/Linux文件操作_image-12.png)
+3. `sleep 300 &`：让程序等待300s，用于模拟一个持续运行的进程，如果不加`&`让命令在后台运行，而是直接运行，终端会等待300s，期间不能输入下一条命令，可以用`Ctrl+C`提前终止
+![sleep300](assets/images/Linux文件操作_image-13.png)
+![sleep300&](assets/images/Linux文件操作_image-14.png)
+4. `jobs`：查看当前终端气动的后台或暂停作业，只管理当前shell气动的作业，不会显示系统中的全部进程。
+![jobs](assets/images/Linux文件操作_image-15.png)
+5. `pgrep sleep`：根据进程名称查找PID
+![pgrep](assets/images/Linux文件操作_image-16.png)
+6. `kill`：终止进程`kill PID`向对应PID的进程发送终止信号，`kill %1`按作业编号退出
+![kill%](assets/images/Linux文件操作_image-17.png)
+![killPID](assets/images/Linux文件操作_image-18.png)
+
+## 管道与重定向
+```bash
+ps aux | head
+ps aux | sort -rk 3 | head
+history | tail -n 10
+printf "px4\nlinux\ngit\n" > topics.txt
+cat topics.txt
+grep "px4" topics.txt
+wc -l topics.txt
+```
+`命令A | 命令B`表示将A的输出交给B继续处理
+1. `>`覆盖写入文件
+2. `>>`追加写入文件
+3. `greb`筛选文本
+4. `sort`排序
+5. `head`查看开头
+6. `tail`查看结尾
+7. ‘`wc -l`统计行数
+
+`ps aux | head`查看进程开头
+![PSAUX|HEAD](assets/images/Linux文件操作_image-19.png)
+
+`ps aux | sort -rk 3 | head`
+![psaux|sort-rk3|head](assets/images/Linux文件操作_image-20.png)
+
+`history | tial -n 10`显示后十条（最近十条）操作命令
+![history|tial-n10](assets/images/Linux文件操作_image-21.png)
+
+`printf`写入，`cat`读取
+![printf_cat](assets/images/Linux文件操作_image-22.png)
+
+`grep "px4" topics.txt`在topics.txt文件中筛选“px4”字符
+
+`wc -l topics.txt`统计文件topics.txt的行数
+
+## 环境变量
+```bash
+echo "$HOME"
+echo "$PATH"
+export PX4_HOME="$HOME/PX4-Autopilot"
+echo "$PX4_HOME"
+env | grep PX4
+```
+`export`设置的变量只在当前终端及其子进程中有效，关闭终端后消失
+![HOME&PATH](assets/images/Linux文件操作_image-23.png)
+![export](assets/images/Linux文件操作_image-24.png)
+
+## SSH基础
+```bash
+ssh -V
+ls -la ~/.ssh
+```
+SSH用于安全登录远程Linux机器，也可用于GitHub身份认证
+私钥文件不能发给别人，也不要提交到GitHub仓库
+暂不生成私钥文件
+![ssh](assets/images/Linux文件操作_image-25.png)
