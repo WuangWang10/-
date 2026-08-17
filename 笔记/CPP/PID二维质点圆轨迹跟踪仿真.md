@@ -2,7 +2,7 @@
 
 ## 环境描述
 
-对于位于坐标原点的质点$m = 1 kg$，通过PID控制器，使其跟踪半径为$5 m$的圆形轨迹$x_d = 5cos(\frac{\pi}{5}t),\quad y_d = 5sin(\frac{\pi}{5}t)$。
+对于位于坐标原点的质点\[m = 1kg\]，通过PID控制器，使其跟踪半径为$5 m$的圆形轨迹$x_d = 5cos(\frac{\pi}{5}t),\quad y_d = 5sin(\frac{\pi}{5}t)$。
 
 PID控制器的输出直接以加速度的形式作用在质点上，位置、速度和加速度之间的微积分转化采用数值求导/加和的方式实现。
 
@@ -75,9 +75,9 @@ struct PID
     double integralLimit;
     double integral = 0.0;
     
-    double contrloLaw(double positionError, double velocityError, double dt)
+    double controlLaw(double positionError, double velocityError, double dt)
     {
-        integral += velocityError * dt;
+        integral += positionError * dt;
         integral = std::clamp(integral, -integralLimit, integralLimit);
         
         return kp * positionError + ki * integral + kd * velocityError;
@@ -94,17 +94,123 @@ PID pidX{5.0, 1.0, 0.01, 8.0};
 PID pidY{5.0, 1.0, 0.01, 8.0};
 ```
 
-## 仿真主程序(循环)
+## 仿真主程序和主循环
 
 
 
+1. 确定理想轨迹参数
 
+```cpp
+// 指定圆心、半径和角速度
+const double centerX = 0.0;
+const double centerY = 0.0;
+const double radius = 5.0;
+const double omega = 2.0 * PI / 10.0;
+```
 
+2. 确定仿真时间参数和加速度限幅
 
+```cpp
+constexpr double dt = 0.0001;
+constexpr double duration = 20.0;
+constexpr double accelerationLimit = 20.0;
+```
 
+3. 初始化状态和控制器参数
 
+```cpp
+State state{0.0, 0.0, 0.0, 0.0};	// x,y,vx,xy
+PID pidX{8.0, 2.0, 0.1, 10.0};
+PID pidY{8.0, 2.0, 0.1, 10.0};
+```
 
+4. 开始文件操作
 
+```cpp
+std::ofstream file("trajectory.csv");
+file << "time,x,y,x_ref,y_ref,ux,uy,error\n";
+```
+
+5. 仿真主循环
+
+```cpp
+for (t = 0.0; t <= duration; t += dt)
+{
+    const double theta = omega * t;
+    
+    const double x_ref = radius * std::cos(theta);
+    const double y_ref = radius * std::sin(theta);
+    const double vx_ref = -radius * omega * std::sin(theta);
+    const double vy_ref =  radius * omega * std::cos(theta);
+    const double ax_ref = -radius * omega * omega * std::cos(theta);
+    const double ay_ref = -radius * omega * omega * std::sin(theta);
+    
+    const double posErrorX = x_ref - state.x;
+    const double posErrorY = y_ref - state.y;
+    double Err = std::hypot(posErrorX, pos
+ErrorY);
+    const double volErrorX = vx_ref - state.vx;
+    const double volErrorY = vy_ref - state.vy;
+    
+    double ux = pidX.contorlLaw(posErrorX, volErrorX, dt);
+    double uy = pidY.controlLaw(posErrorY, volErrorY, dt);
+    
+    file << t << "," << state.x << "," << state.y << "," << x_ref << "," << y_ref << "," << ux << "," << uy << "," << Err << "\n";
+    
+    state.vx += ux * dt;
+    state.vy += uy * dt;
+    state.x += state.vx * dt;
+    state.y += state.xy * dt;
+}
+```
+
+6. 结束说明
+
+```cpp
+std::cout << "The simulation has been finished, results in the file \"trajectory.csv\""
+```
+
+## 结果获取并绘图
+
+```python
+import matplotlib
+matplotlib.use('TkAgg')
+%% 处理PyCharm绘图命令`plt.show()`错误
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+filePath = "D:/Code/Cpp/PIDsimu/trajectory.csv"
+fileData = pd.read_csv(filePath)
+
+xData = fileData["t"]
+yData = fileData["Error"]
+
+plt.figure(figsize=(20,10))
+
+plt.plot(xData,yData)
+plt.grid(True)
+plt.xlabel("Time(s)")
+plt.ylabel("Error(m)")
+plt.show()
+```
+
+绘制的误差图像为：
+
+![image-20260817225409223](C:\Users\lenovo\Desktop\学习计划\LearningLog\笔记\assets\images\image-20260817225409223.png)
+
+## 附录
+
+所需头文件
+
+```cpp
+#include <algorithm>
+#include <cmath>
+#include <fostream>
+#include <iostream>
+```
+
+参考完整代码
 
 ---
 
@@ -220,3 +326,4 @@ int main()
 
 }
 ```
+
